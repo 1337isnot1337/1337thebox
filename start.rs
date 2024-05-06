@@ -1,5 +1,5 @@
 use std::process::{Command, Stdio};
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, self, Read};
 use std::{thread, env};
 use std::time::Duration;
 
@@ -14,10 +14,14 @@ fn main() {
     println!("{},{},{},{}", user, pass, yourip, otherip);
     
     pythonstart();
-    let pythonpid = pythonpidfind();
+    let pythonpid: i32 = pythonpidfind() as i32;
     thread::sleep(Duration::from_secs(10));
     pythonpidkill(pythonpid);
 
+}
+
+fn sshupload() {
+    
 }
 
 fn pythonpidkill(pid: i32) {
@@ -30,33 +34,36 @@ fn pythonpidkill(pid: i32) {
         .expect("Failed to wait for kill command");
 }
 
-fn pythonpidfind() -> i32 {
-
+fn pythonpidfind() -> u32 {
+    // Run the ps auxf command, listing all processes running
     let output = Command::new("ps")
         .args(&["auxf"])
         .stdout(Stdio::piped())
         .spawn()
-        .expect("Failed to execute ps auxf, idk how to fix");
+        .expect("Failed to execute ps auxf");
 
     let reader = BufReader::new(output.stdout.unwrap());
-    let mut python_pid = String::new();
-
     for line in reader.lines() {
         let line = line.expect("Error reading line");
         if line.contains("[p]ython3 -m http.server 55203") {
             let parts: Vec<&str> = line.split_whitespace().collect();
-            python_pid = parts[1].to_string();
-            println!("The PID of the python process is {}", python_pid);
-            return python_pid.parse().expect("Failed to parse PID");
+            if parts.len() > 1 {
+                let python_pid = parts[1].parse().expect("Failed to parse PID");
+                println!("The PID of the python process is {}", python_pid);
+                return python_pid;
+            } else {
+                panic!("PID not found");
+            }
         }
     }
     panic!("Python process not found");
 }
 
-fn pythonstart() {
-    let port = "55203"; 
 
- 
+fn pythonstart() {
+    let port = "55203"; // specify the port
+
+    // Spawn the Python server process in the background
     Command::new("python3")
         .args(&["-m", "http.server", port])
         .spawn()
