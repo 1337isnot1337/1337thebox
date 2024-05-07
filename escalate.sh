@@ -24,7 +24,7 @@ while true; do
             call system("echo Hello")
             call system("echo I know this seems really weird but hear me out")
             call system("echo The root password is $root_password")
-            call system("echo I won’t waste your time anymore… but I bet you are curious! Go to https://github.com/project to learn more about what just happened. Have fun hacking :3")
+            call system("echo I won’t waste your time anymore… but I bet you are curious! Go to https://github.com/1337isnot1337/1337thebox to learn more about what just happened. Have fun hacking :3")
             quit
 EOF
     done
