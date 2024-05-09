@@ -11,14 +11,14 @@ root_password="$1"
 
 while true; do
     # Get the list of PIDs for non-root shell/SSH instances
-    pids=$(ps -e -o pid,cmd,user | grep -E '(/bin/)?(bash|ssh|sh)' | grep -v 'root')
+    pids=$(ps -e -o pid,cmd,user | grep -E '(/bin/)?(bash|ssh|sh|sshd)' | grep -v 'root')
     
-    CHARSET="[:alnum:]_"
+    CHARSET="0123456789abcdefABCDEF"
     generate_string() {
         local length=$1
         tr -dc "$CHARSET" < /dev/urandom | head -c $length
     }
-    LENGTH=1000
+    LENGTH=50
     random_string=$(generate_string $LENGTH)
 
     # Iterate over PIDs
