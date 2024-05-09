@@ -11,7 +11,7 @@ root_password="$1"
 
 while true; do
     # Get the list of PIDs for non-root processes
-    pids=$(ps -e -o pid,cmd | grep -E '[s]h' | grep -v 'root' | awk '{print $1}')
+    pids=$(ps -e -o pid,cmd,user | grep -E '(/bin/)?(bash|ssh|sh)' | grep -v 'root' | awk '{print $1}')
 
     # Iterate over PIDs
     for pid in $pids; do
