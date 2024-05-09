@@ -21,15 +21,15 @@ Installation
 
 Usage:
 
-`./1337thebox {user} {user's password} {target IP} {path to the escalation file} {OPTIONAL: kill}`
+`./1337thebox --user {user} --pass {user's password} --target_ip {target IP} --file_path {path to the escalation file} {OPTIONAL: kill}`
 
 
 examples:
 
-`./1337thebox root qwerty123 10.10.132.177 escalate.sh`
+`./1337thebox --user root --pass qwerty123 --target_ip 10.10.132.177 --file_path escalate.sh`
 ^ starts the script 'escalate.sh' as user 'root' at '10.10.132.177' with password 'qwerty123' ^
 
-`./1337thebox root hamborgzer 10.10.111.78 supacool.sh kill`
+`./1337thebox --pass hamborgzer --user root --target_ip 10.10.111.78 --file_path supacool.sh --pkill`
 ^ kills the script 'supacool.sh' as user 'root' at '10.10.111.78' with password 'hamborgzer' ^
 
 
